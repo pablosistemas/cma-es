@@ -20,7 +20,6 @@ class Run:
       if fitness <= self.stopfitness:
         break
 
-
     return [xmin, fitness, counteval]
 
   def __stop_condition(self, counteval, stopeval):

@@ -7,7 +7,7 @@ class Cmaes:
 
     # Set dimension, fitness fct, stop criteria, start values...
     self.N = dimension_size
-    self.xmean = np.random.uniform(0, 1, self.N)
+    self.xmean = np.random.uniform(0, 1, self.N).reshape((self.N, 1))
     self.zmean = None
     self.sigma = 0.5
 
@@ -17,11 +17,11 @@ class Cmaes:
     # Selection
     self.lambda_pop_size = 4 + math.floor(3 * np.log(self.N))
     self.mu_rank_elite_size = math.floor(self.lambda_pop_size / 2.0)
-    self.weights = np.log((self.lambda_pop_size + 1.0) / 2) \
+    self.weights = np.log(self.mu_rank_elite_size + 1.0 / 2) \
         - np.array([np.log(i + 1) for i in range(self.mu_rank_elite_size)])
 
-    self.weights = self.weights / sum(self.weights)
-    self.mueff = (sum(self.weights) ** 2 ) / sum(np.square(self.weights))
+    self.weights = (self.weights / sum(self.weights)).reshape((self.mu_rank_elite_size, 1))
+    self.mueff = np.asscalar((sum(self.weights) ** 2 ) / sum(np.square(self.weights)))
 
     # Adaptation
     # # Step size control
@@ -47,23 +47,21 @@ class Cmaes:
 
   def next(self, fn_eval, counteval, eigenval):
     std_norm_dist = np.array([np.random.normal(0, 1, self.N) for offs in range(self.lambda_pop_size)]).T
-    mutation_dist = np.array([self.xmean + self.sigma * self.B.dot(self.D.dot(std_norm_dist[:, k])) for k in range(self.lambda_pop_size)])
+    mutation_dist = np.array([(self.xmean + self.sigma * self.B.dot(self.D.dot(std_norm_dist[:, k].reshape((self.N, 1))))).reshape(self.N) for k in range(self.lambda_pop_size)]).T
 
-    offspring_evaluation = [fn_eval(mutation_dist[:, offs]) for offs in range(self.lambda_pop_size)]
+    offspring_evaluation = np.array([fn_eval(mutation_dist[:, offs]) for offs in range(self.lambda_pop_size)]).reshape((self.N, 1))
     counteval = counteval + self.lambda_pop_size
 
     idx_rank_offspring = self.__rank_sort(offspring_evaluation)
 
     self.xmean = self.recombination(
-      mutation_dist[:, idx_rank_offspring[0: self.mu_rank_elite_size]],
-      self.weights,
-      self.mu_rank_elite_size
+      mutation_dist[:, idx_rank_offspring[0: self.mu_rank_elite_size].reshape(self.mu_rank_elite_size)],
+      self.weights
     )
 
     self.zmean = self.recombination(
-      std_norm_dist[:, idx_rank_offspring[0: self.mu_rank_elite_size]],
-      self.weights,
-      self.mu_rank_elite_size
+      std_norm_dist[:, idx_rank_offspring[0: self.mu_rank_elite_size].reshape(self.mu_rank_elite_size)],
+      self.weights
     )
 
     # print('zmean')
@@ -73,7 +71,7 @@ class Cmaes:
     # print(self.xmean)
 
     self.ps = (1 - self.cumulate_sigma_control) * self.ps + \
-        (np.sqrt(self.cumulate_sigma_control * (2 - self.cumulate_sigma_control) * self.mueff)) * (self.B.dot(self.zmean.reshape((self.N, 1))))
+        (np.sqrt(self.cumulate_sigma_control * (2 - self.cumulate_sigma_control) * self.mueff)) * (self.B.dot(self.zmean))
 
     # print('ps:')
     # print(self.ps)
@@ -88,17 +86,12 @@ class Cmaes:
     self.pc = (1 - self.cov_adapt_time_constant) * self.pc + \
         self.hsig * np.sqrt(self.cov_adapt_time_constant * (2 - self.cov_adapt_time_constant) * self.mueff) * (self.B.dot(self.D.dot(self.zmean.reshape((self.N, 1)))))
 
-    # self.C = (1 - self.c1 - self.cmu) * self.C \
-    #     + self.c1 * self.C.dot(self.pc.dot(self.pc.T) + (1 - self.hsig) * self.cov_adapt_time_constant * (2 - self.cov_adapt_time_constant) * self.C)
-    # self.BDOffs = self.B.dot(self.D.dot(std_norm_dist[:, idx_rank_offspring[0: self.mu_rank_elite_size]]))
-    # self.C = self.C + self.cmu * (self.BDOffs.dot(np.diag(self.weights)).dot(self.BDOffs.T))
-
-    BDzk = (self.B.dot(self.D.dot(std_norm_dist[:, idx_rank_offspring[0: self.mu_rank_elite_size]])))
+    BDzk = (self.B.dot(self.D.dot(std_norm_dist[:, idx_rank_offspring[0: self.mu_rank_elite_size].reshape(self.mu_rank_elite_size)])))
     self.C = (1 - self.c1 - self.cmu) * self.C \
       + self.c1 * (self.pc.dot(self.pc.T) \
           + (1 - self.hsig) * self.cov_adapt_time_constant * (2 - self.cov_adapt_time_constant) * self.C) \
           + self.cmu \
-            * BDzk.dot(np.diag(self.weights).dot(BDzk.T))
+            * BDzk.dot(np.diag(self.weights.reshape(self.mu_rank_elite_size)).dot(BDzk.T))
 
     self.sigma = self.sigma * np.exp((self.cumulate_sigma_control / self.damps) * (np.linalg.norm(self.ps) / self.chiN - 1))
 
@@ -123,4 +116,4 @@ class Cmaes:
     return [std_norm_dist, mutation_dist, idx_rank_offspring, offspring_evaluation[idx_rank_offspring[0]], counteval, eigenval]
 
   def __rank_sort(self, evaluation):
-    return np.argsort(evaluation)
+    return np.argsort(evaluation.reshape(self.N))

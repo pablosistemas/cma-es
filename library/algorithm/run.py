@@ -1,26 +1,34 @@
 import numpy as np
 import math
 
+
 class Run:
-  def __init__(self, model, func):
-    self.model = model
-    self.fn_eval = func
-    self.stopfitness = 1e-10
+    def __init__(self, model, func, stopfitness=1e-10, optim='min'):
+        self.model = model
+        self.fn_eval = func
+        self.stopfitness = stopfitness
+        self.optim = optim
 
-  def run(self):
-    idx_rank_offspring = None
-    model = self.model
-    counteval = 0
-    eigenval = 0
+    def run(self):
+        idx_rank_offspring = None
+        model = self.model
+        counteval = 0
+        eigenval = 0
 
-    while(not self.__stop_condition(counteval, model.stopeval)):
-      [std_offspring, mut_offspring, idx_rank_offspring, fitness, counteval, eigenval] = model.next(self.fn_eval, counteval, eigenval)
-      xmin = mut_offspring[:, idx_rank_offspring[0]]
-      print("%s : %s" %(str(counteval), str(fitness)))
-      if fitness <= self.stopfitness:
-        break
+        while(not self.__iteration_stop_condition__(counteval, model.stopeval)):
+            [std_offspring, mut_offspring, idx_rank_offspring, fitness, counteval,
+                eigenval] = model.next(self.fn_eval, counteval, eigenval, self.optim)
+            xmin = mut_offspring[:, idx_rank_offspring[0]]
+            real_fitness = 1.0 / fitness
+            print("%s : %s" % (str(counteval), str(real_fitness)))
 
-    return [xmin, fitness, counteval]
+            if self.__fitness_stop_condition__(real_fitness):
+                break
 
-  def __stop_condition(self, counteval, stopeval):
-    return counteval >= stopeval
+        return [xmin, real_fitness, counteval]
+
+    def __iteration_stop_condition__(self, counteval, stopeval):
+        return counteval >= stopeval
+
+    def __fitness_stop_condition__(self, fitness):
+        return (fitness <= self.stopfitness) if self.optim is 'min' else (fitness > self.stopfitness)

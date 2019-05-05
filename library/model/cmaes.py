@@ -2,20 +2,27 @@ import math
 import numpy as np
 
 class Cmaes:
-  def __init__(self, dimension_size, recombination):
+  def __init__(self, recombination, stopeval = None):
     self.recombination = recombination
+    self.__setup__(stopeval = stopeval)
 
+  def __setup__(self, x=None, stopeval = None):
     # Set dimension, fitness fct, stop criteria, start values...
-    self.N = dimension_size
-    self.xmean = np.random.uniform(0, 1, self.N).reshape((self.N, 1))
+    if x is not None:
+      self.N = x.size
+      self.xmean = x.reshape((self.N, 1))
+    else:
+      self.N = 10
+      self.xmean = np.random.uniform(0, 1, self.N).reshape((self.N, 1))
+
     self.zmean = None
     self.sigma = 0.5
 
     # Stop
-    self.stopeval = 1e3 * self.N ** 2
+    self.stopeval = stopeval if stopeval is not None else 1e3 * self.N ** 2
 
     # Selection
-    self.lambda_pop_size = 4 + math.floor(3 * np.log(self.N))
+    self.lambda_pop_size = min(self.N, 4 + math.floor(3 * np.log(self.N)))
     self.mu_rank_elite_size = math.floor(self.lambda_pop_size / 2.0)
     self.weights = np.log(self.mu_rank_elite_size + 1.0 / 2) \
         - np.array([np.log(i + 1) for i in range(self.mu_rank_elite_size)])
@@ -45,11 +52,18 @@ class Cmaes:
     self.C = np.identity(self.N) # self.B.dot(self.D.dot(np.matrix.transpose(self.B.dot(self.D))))
     self.chiN = self.N ** 0.5 * (1 - 1.0 / (4 * self.N) + 1.0 / (21 * self.N ** 2))
 
-  def next(self, fn_eval, counteval, eigenval):
+  def set_initial_condition(self, x):
+    self.__setup__(x, self.stopeval)
+
+  def next(self, fn_eval, counteval, eigenval, optim = 'min'):
     std_norm_dist = np.array([np.random.normal(0, 1, self.N) for offs in range(self.lambda_pop_size)]).T
     mutation_dist = np.array([(self.xmean + self.sigma * self.B.dot(self.D.dot(std_norm_dist[:, k].reshape((self.N, 1))))).reshape(self.N) for k in range(self.lambda_pop_size)]).T
 
     offspring_evaluation = np.array([fn_eval(mutation_dist[:, offs]) for offs in range(self.lambda_pop_size)]).reshape((self.N, 1))
+    
+    # if optim == 'max':
+    #     offspring_evaluation = np.array(list(map(lambda off_eval: 1.0 / off_eval, offspring_evaluation)))
+    
     counteval = counteval + self.lambda_pop_size
 
     idx_rank_offspring = self.__rank_sort(offspring_evaluation)

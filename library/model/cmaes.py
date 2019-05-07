@@ -61,9 +61,6 @@ class Cmaes:
 
     offspring_evaluation = np.array([fn_eval(mutation_dist[:, offs]) for offs in range(self.lambda_pop_size)]).reshape((self.N, 1))
     
-    # if optim == 'max':
-    #     offspring_evaluation = np.array(list(map(lambda off_eval: 1.0 / off_eval, offspring_evaluation)))
-    
     counteval = counteval + self.lambda_pop_size
 
     idx_rank_offspring = self.__rank_sort(offspring_evaluation)
@@ -78,24 +75,12 @@ class Cmaes:
       self.weights
     )
 
-    # print('zmean')
-    # print(self.zmean)
-
-    # print('xmean')
-    # print(self.xmean)
-
     self.ps = (1 - self.cumulate_sigma_control) * self.ps + \
         (np.sqrt(self.cumulate_sigma_control * (2 - self.cumulate_sigma_control) * self.mueff)) * (self.B.dot(self.zmean))
-
-    # print('ps:')
-    # print(self.ps)
 
     self.hsig = np.linalg.norm(self.ps) / \
         np.sqrt(1 - (1 - self.cumulate_sigma_control) ** (2 * counteval / self.lambda_pop_size)) / \
         self.chiN < (1.4 + 2 / (self.N + 1))
-
-    # print('hsig: ')
-    # print(self.hsig)
 
     self.pc = (1 - self.cov_adapt_time_constant) * self.pc + \
         self.hsig * np.sqrt(self.cov_adapt_time_constant * (2 - self.cov_adapt_time_constant) * self.mueff) * (self.B.dot(self.D.dot(self.zmean.reshape((self.N, 1)))))
@@ -115,17 +100,8 @@ class Cmaes:
       [self.D, self.B] = np.linalg.eig(self.C)
       self.D = np.diag(np.sqrt(self.D))
 
-    # print('D:')
-    # print(self.D)
-
-    # print('C: ')
-    # print(self.C)
-
-    if offspring_evaluation[idx_rank_offspring[0]] == offspring_evaluation[idx_rank_offspring[math.floor(np.ceil(0.7 * self.lambda_pop_size))]]:
+    if offspring_evaluation[idx_rank_offspring[0]] == offspring_evaluation[idx_rank_offspring[math.floor(np.floor(0.7 * self.lambda_pop_size))]]:
       self.sigma = self.sigma * np.exp(0.2 + self.cumulate_sigma_control / self.damps)
-
-    # print('sigma')
-    # print(self.sigma)
 
     return [std_norm_dist, mutation_dist, idx_rank_offspring, offspring_evaluation[idx_rank_offspring[0]], counteval, eigenval]
 

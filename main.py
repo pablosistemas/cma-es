@@ -55,13 +55,11 @@ class CmaesOpt(BaseOptimizer):
                 algorithm = Run(model, sk_eval.run, 0.98, 'max')
                 [xmin, fitness, counteval] = algorithm.run()
                 
-                dictionary[pip[1]] = fitness
-
                 print("#Pipeline: " + str(pip[1]))
                 print("#Pipeline's parse tree: " + str(pip[2]))
                 print("#Evaluation performance (F1 weighted): " + str(fitness))
-                # print("#Evaluation performance (F1 weighted): " + str(results['f1_weighted']['mean']))
-                # dictionary[pip[1]] = results['f1_weighted']['mean']
+
+                dictionary[pip[1]] = fitness
 
             except Exception as e:
                 print("#" + str(e))
@@ -143,7 +141,6 @@ def main2(args):
     value_best = rand_result[rs_length - 1][1]
     print('Best pipeline: ' + str(key_best))
     print('Best pipeline\'s result (F1 weighted): ' + str(value_best))
-
 
 
 def main():

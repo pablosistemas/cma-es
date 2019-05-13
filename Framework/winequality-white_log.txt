@@ -1,0 +1,352 @@
+----- RPC Client configuration -----
+Server url: http://localhost:8080
+
+Dataset: winequality-white
+
+Metrics: [{'metric': 'accuracy', 'args': {}, 'name': 'accuracy'}, {'metric': 'f1', 'args': {'average': 'micro'}, 'name': 'f1_micro'}, {'metric': 'f1', 'args': {'average': 'macro'}, 'name': 'f1_macro'}, {'metric': 'f1', 'args': {'average': 'weighted'}, 'name': 'f1_weighted'}]
+
+Splits: 5
+------------------------------------
+Evaluating the pipelines....
+------------------------------------
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+9 : [0.27800547]
+C:\Repos\TrabalhoAUTOML\integrado\Framework/cmaes\library\evaluation\sklearn_evaluation.py:32: ComplexWarning: Casting complex values to real discards the imaginary part
+  float_of_x = float(x[idx_x])
+C:\Repos\TrabalhoAUTOML\integrado\Framework/cmaes\library\evaluation\sklearn_evaluation.py:21: ComplexWarning: Casting complex values to real discards the imaginary part
+  repair_alpha = self.__get_fraction_of_value__(base_bad_value, np.abs(int(x_v)))
+18 : [0.28956474]
+27 : [0.29971623]
+36 : [0.30153661]
+45 : [0.33812057]
+54 : [0.34302381]
+63 : [0.32496965]
+72 : [0.31629244]
+81 : [0.32525599]
+90 : [0.32537646]
+99 : [0.30955195]
+108 : [0.32395198]
+#Pipeline: PCA 2 True auto 0.01 13 SVC 0.03125 linear 0.03125 800.0 17  0.09  4000
+#Pipeline's parse tree: [[0, '<Start>', '<preprocessing>', None], [1, '<preprocessing>', '<PCA>', '<Start>'], [2, '<PCA>', 'PCA ', '<preprocessing>'], [3, '<n_components>', '2', '<PCA>'], [3, '<whiten>', 'True', '<PCA>'], [3, '<svd_solver>', 'auto', '<PCA>'], [3, '<tol>', '0.01', '<PCA>'], [3, '<iterated_power>', '13', '<PCA>'], [1, '<algorithm>', '<SVC>', '<Start>'], [2, '<SVC>', 'SVC ', '<algorithm>'], [3, '<C>', '0.03125', '<SVC>'], [3, '<kernel>', 'linear', '<SVC>'], [3, '<gamma>', '0.03125', '<SVC>'], [3, '<coef0>', '800.0', '<SVC>'], [3, '<degree>', '17', '<SVC>'], [3, '<tol>', '0.09', '<SVC>'], [3, '<max_iter>', '4000', '<SVC>']]
+#Evaluation performance (F1 weighted): [0.32395198]
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+3 : [0.44715564]
+6 : [0.1]
+9 : [0.1]
+12 : [0.1]
+15 : [0.1]
+18 : [0.27905927]
+21 : [0.280065]
+24 : [0.28588069]
+27 : [0.2860087]
+30 : [0.29773464]
+33 : [0.28392707]
+36 : [0.28711786]
+39 : [0.28729282]
+42 : [0.27845095]
+45 : [0.28780571]
+48 : [0.29106359]
+51 : [0.29246959]
+54 : [0.28646354]
+57 : [0.33927836]
+60 : [0.28340942]
+63 : [0.30146222]
+66 : [0.33709954]
+69 : [0.28680225]
+72 : [0.37550457]
+75 : [0.29225407]
+78 : [0.28608566]
+81 : [0.29062676]
+84 : [0.30163061]
+87 : [0.29174299]
+90 : [0.29235645]
+93 : [0.29472573]
+96 : [0.27866909]
+99 : [0.28178791]
+102 : [0.28853921]
+#Pipeline: logR l1 0.0 2048.0 False 350 True
+#Pipeline's parse tree: [[0, '<Start>', '<algorithm>', None], [1, '<algorithm>', '<logR>', '<Start>'], [2, '<logR>', 'logR ', '<algorithm>'], [3, '<penalty>', 'l1', '<logR>'], [3, '<tol>', '0.0', '<logR>'], [3, '<C>', '2048.0', '<logR>'], [3, '<fit_intercept>', 'False', '<logR>'], [3, '<max_iter>', '350', '<logR>'], [3, '<warm_start>', 'True', '<logR>']]
+#Evaluation performance (F1 weighted): [0.28853921]
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+3 : [0.48342169]
+6 : [0.47662166]
+9 : [0.47167341]
+12 : [0.47662166]
+15 : [0.47662166]
+18 : [0.47662166]
+21 : [0.48342169]
+24 : [0.47662166]
+27 : [0.47662166]
+30 : [0.47662166]
+33 : [0.47167341]
+36 : [0.47662166]
+39 : [0.48342169]
+42 : [0.48342169]
+45 : [0.48342169]
+48 : [0.48342169]
+51 : [0.48342169]
+54 : [0.48342169]
+57 : [0.48342169]
+60 : [0.48342169]
+63 : [0.48342169]
+66 : [0.48342169]
+69 : [0.47662166]
+72 : [0.48342169]
+75 : [0.48342169]
+78 : [0.48342169]
+81 : [0.48342169]
+84 : [0.48342169]
+87 : [0.48342169]
+90 : [0.48342169]
+93 : [0.48342169]
+96 : [0.48342169]
+99 : [0.48342169]
+102 : [0.48342169]
+#Pipeline: PCA 9 True arpack 0.08 4 gaussianNB
+#Pipeline's parse tree: [[0, '<Start>', '<preprocessing>', None], [1, '<preprocessing>', '<PCA>', '<Start>'], [2, '<PCA>', 'PCA ', '<preprocessing>'], [3, '<n_components>', '9', '<PCA>'], [3, '<whiten>', 'True', '<PCA>'], [3, '<svd_solver>', 'arpack', '<PCA>'], [3, '<tol>', '0.08', '<PCA>'], [3, '<iterated_power>', '4', '<PCA>'], [1, '<algorithm>', 'gaussianNB', '<Start>']]
+#Evaluation performance (F1 weighted): [0.48342169]
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+7 : [0.23419152]
+14 : [0.18548213]
+21 : [0.23455378]
+28 : [0.23455378]
+35 : [0.23716981]
+42 : [0.23483537]
+49 : [0.23572099]
+56 : [0.23863792]
+63 : [0.23831774]
+70 : [0.23455378]
+77 : [0.23716981]
+84 : [0.23320217]
+91 : [0.26713207]
+98 : [0.22761869]
+105 : [0.23540006]
+#Pipeline: kBest 4 SVC 2048.0 linear 2.0 30.0 2  0.05  200
+#Pipeline's parse tree: [[0, '<Start>', '<preprocessing>', None], [1, '<preprocessing>', '<kBest>', '<Start>'], [2, '<kBest>', 'kBest ', '<preprocessing>'], [3, '<k>', '4', '<kBest>'], [1, '<algorithm>', '<SVC>', '<Start>'], [2, '<SVC>', 'SVC ', '<algorithm>'], [3, '<C>', '2048.0', '<SVC>'], [3, '<kernel>', 'linear', '<SVC>'], [3, '<gamma>', '2.0', '<SVC>'], [3, '<coef0>', '30.0', '<SVC>'], [3, '<degree>', '2', '<SVC>'], [3, '<tol>', '0.05', '<SVC>'], [3, '<max_iter>', '200', '<SVC>']]
+#Evaluation performance (F1 weighted): [0.23540006]
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+4 : [0.27800547]
+8 : [0.27800547]
+12 : [0.28143678]
+16 : [0.27800547]
+20 : [0.27800547]
+24 : [0.27800547]
+28 : [0.27800547]
+32 : [0.27800547]
+36 : [0.27800547]
+40 : [0.27800547]
+44 : [0.28143678]
+48 : [0.33738197]
+52 : [0.27918025]
+56 : [0.27800547]
+60 : [0.27852935]
+64 : [0.27804475]
+68 : [0.28686245]
+72 : [0.2900201]
+76 : [0.29113901]
+80 : [0.29081598]
+84 : [0.28555547]
+88 : [0.29357481]
+92 : [0.29713131]
+96 : [0.3133292]
+100 : [0.28864608]
+#Pipeline: kBest 1 logR l1 0.01 2048.0 True 200 True
+#Pipeline's parse tree: [[0, '<Start>', '<preprocessing>', None], [1, '<preprocessing>', '<kBest>', '<Start>'], [2, '<kBest>', 'kBest ', '<preprocessing>'], [3, '<k>', '1', '<kBest>'], [1, '<algorithm>', '<logR>', '<Start>'], [2, '<logR>', 'logR ', '<algorithm>'], [3, '<penalty>', 'l1', '<logR>'], [3, '<tol>', '0.01', '<logR>'], [3, '<C>', '2048.0', '<logR>'], [3, '<fit_intercept>', 'True', '<logR>'], [3, '<max_iter>', '200', '<logR>'], [3, '<warm_start>', 'True', '<logR>']]
+#Evaluation performance (F1 weighted): [0.28864608]
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+6 : [0.39566016]
+12 : [0.33981588]
+18 : [0.28124681]
+24 : [0.42301456]
+30 : [0.42070394]
+36 : [0.4197393]
+42 : [0.4587616]
+48 : [0.44425562]
+54 : [0.46322447]
+60 : [0.46317468]
+66 : [0.46077294]
+72 : [0.43542166]
+78 : [0.44102664]
+84 : [0.43900722]
+90 : [0.46213295]
+96 : [0.45958868]
+102 : [0.447052]
+#Pipeline: PCA 5 False auto 0.06 10 MLP invscaling 0.3 0.4 200 relu
+#Pipeline's parse tree: [[0, '<Start>', '<preprocessing>', None], [1, '<preprocessing>', '<PCA>', '<Start>'], [2, '<PCA>', 'PCA ', '<preprocessing>'], [3, '<n_components>', '5', '<PCA>'], [3, '<whiten>', 'False', '<PCA>'], [3, '<svd_solver>', 'auto', '<PCA>'], [3, '<tol>', '0.06', '<PCA>'], [3, '<iterated_power>', '10', '<PCA>'], [1, '<algorithm>', '<MLP>', '<Start>'], [2, '<MLP>', 'MLP ', '<algorithm>'], [3, '<learning_rate>', 'invscaling', '<MLP>'], [3, '<learning_rate_init>', '0.3', '<MLP>'], [3, '<momentum>', '0.4', '<MLP>'], [3, '<max_iter>', '200', '<MLP>'], [3, '<activation>', 'relu', '<MLP>']]
+#Evaluation performance (F1 weighted): [0.447052]
+Non numeric parameter
+Non numeric parameter
+3 : [0.3339294]
+6 : [0.23745297]
+9 : [0.31514255]
+12 : [0.30990767]
+15 : [0.27017485]
+18 : [0.29137827]
+21 : [0.28680988]
+24 : [0.28016004]
+27 : [0.29743506]
+30 : [0.31830089]
+33 : [0.28615178]
+36 : [0.29502249]
+39 : [0.34495606]
+42 : [0.288059]
+45 : [0.32404921]
+48 : [0.30897168]
+51 : [0.26240302]
+54 : [0.30621435]
+57 : [0.27432224]
+60 : [0.29485284]
+63 : [0.2221518]
+66 : [0.25519682]
+69 : [0.26592608]
+72 : [0.2585148]
+75 : [0.22626694]
+78 : [0.22283241]
+81 : [0.27523008]
+84 : [0.37426292]
+87 : [0.25872221]
+90 : [0.22264786]
+93 : [0.23489583]
+96 : [0.27171954]
+99 : [0.31146816]
+102 : [0.29926149]
+#Pipeline: PAC 0.05 512.0 500 False
+#Pipeline's parse tree: [[0, '<Start>', '<algorithm>', None], [1, '<algorithm>', '<PAC>', '<Start>'], [2, '<PAC>', 'PAC ', '<algorithm>'], [3, '<tol>', '0.05', '<PAC>'], [3, '<C>', '512.0', '<PAC>'], [3, '<max_iter>', '500', '<PAC>'], [3, '<warm_start>', 'False', '<PAC>']]
+#Evaluation performance (F1 weighted): [0.29926149]
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+3 : [0.48342169]
+6 : [0.48342169]
+9 : [0.48342169]
+12 : [0.48342169]
+15 : [0.48342169]
+18 : [0.48342169]
+21 : [0.48342169]
+24 : [0.48342169]
+27 : [0.48342169]
+30 : [0.48342169]
+33 : [0.48342169]
+36 : [0.48342169]
+39 : [0.48342169]
+42 : [0.48342169]
+45 : [0.48342169]
+48 : [0.48342169]
+51 : [0.48342169]
+54 : [0.48342169]
+57 : [0.47167341]
+60 : [0.48342169]
+63 : [0.48342169]
+66 : [0.48342169]
+69 : [0.48342169]
+72 : [0.48342169]
+75 : [0.48342169]
+78 : [0.45655493]
+81 : [0.48342169]
+84 : [0.48342169]
+87 : [0.48342169]
+90 : [0.48342169]
+93 : [0.48342169]
+96 : [0.48342169]
+99 : [0.48342169]
+102 : [0.48342169]
+#Pipeline: PCA 10 True randomized 0.08 16 gaussianNB
+#Pipeline's parse tree: [[0, '<Start>', '<preprocessing>', None], [1, '<preprocessing>', '<PCA>', '<Start>'], [2, '<PCA>', 'PCA ', '<preprocessing>'], [3, '<n_components>', '10',
+'<PCA>'], [3, '<whiten>', 'True', '<PCA>'], [3, '<svd_solver>', 'randomized', '<PCA>'], [3, '<tol>', '0.08', '<PCA>'], [3, '<iterated_power>', '16', '<PCA>'], [1, '<algorithm>', 'gaussianNB', '<Start>']]
+#Evaluation performance (F1 weighted): [0.48342169]
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+Non numeric parameter
+5 : [0.40024916]
+10 : [0.42500482]
+15 : [0.40160032]
+20 : [0.41569738]
+25 : [0.4141113]
+30 : [0.42352869]
+35 : [0.43617778]
+40 : [0.43623878]
+45 : [0.43220262]
+50 : [0.42283015]
+55 : [0.41076356]
+60 : [0.43042801]
+65 : [0.42269733]
+70 : [0.4234762]
+75 : [0.43295446]
+80 : [0.42029323]
+85 : [0.42590906]
+90 : [0.43330475]
+95 : [0.41230986]
+100 : [0.4080578]
+#Pipeline: PCA 7 False auto 0.08 5 SGD l2 0.1 300 modified_huber True
+#Pipeline's parse tree: [[0, '<Start>', '<preprocessing>', None], [1, '<preprocessing>', '<PCA>', '<Start>'], [2, '<PCA>', 'PCA ', '<preprocessing>'], [3, '<n_components>', '7', '<PCA>'], [3, '<whiten>', 'False', '<PCA>'], [3, '<svd_solver>', 'auto', '<PCA>'], [3, '<tol>', '0.08', '<PCA>'], [3, '<iterated_power>', '5', '<PCA>'], [1, '<algorithm>', '<SGD>', '<Start>'], [2, '<SGD>', 'SGD ', '<algorithm>'], [3, '<penalty>', 'l2', '<SGD>'], [3, '<tol>', '0.1', '<SGD>'], [3, '<max_iter>', '300', '<SGD>'], [3, '<loss>', 'modified_huber', '<SGD>'], [3, '<warm_start>', 'True', '<SGD>']]
+#Evaluation performance (F1 weighted): [0.4080578]
+Non numeric parameter
+Non numeric parameter
+3 : [0.27951755]
+6 : [0.33429028]
+9 : [0.33050929]
+12 : [0.29368392]
+15 : [0.25341137]
+18 : [0.29466002]
+21 : [0.29227776]
+24 : [0.30283381]
+27 : [0.31210646]
+30 : [0.26702996]
+33 : [0.27239363]
+36 : [0.31909777]
+39 : [0.38906065]
+42 : [0.29973995]
+45 : [0.32361591]
+48 : [0.25843381]
+51 : [0.35728998]
+54 : [0.33163524]
+57 : [0.33240021]
+60 : [0.41532754]
+63 : [0.30142323]
+66 : [0.26974653]
+69 : [0.32035152]
+72 : [0.30264208]
+75 : [0.33195394]
+78 : [0.39675738]
+81 : [0.31043646]
+84 : [0.30425332]
+87 : [0.25980637]
+90 : [0.31823412]
+93 : [0.29986832]
+96 : [0.2781539]
+99 : [0.33848576]
+102 : [0.32077365]
+#Pipeline: PAC 0.02 32.0 4000 True
+#Pipeline's parse tree: [[0, '<Start>', '<algorithm>', None], [1, '<algorithm>', '<PAC>', '<Start>'], [2, '<PAC>', 'PAC ', '<algorithm>'], [3, '<tol>', '0.02', '<PAC>'], [3, '<C>', '32.0', '<PAC>'], [3, '<max_iter>', '4000', '<PAC>'], [3, '<warm_start>', 'True', '<PAC>']]
+#Evaluation performance (F1 weighted): [0.32077365]
+
+------------------------------------
+Best pipeline: PCA 10 True randomized 0.08 16 gaussianNB
+Best pipeline's result (F1 weighted): [0.48342169]
+Total time execution 03:06:43

@@ -1,13 +1,14 @@
 import random
 from parsers import grammar_parser
 
-def legal_productions(gram, method, depth_limit, root, productions):
+def legal_productions(gram, root, productions, method='random', depth_limit=100):
     """
     Returns the available production choices for a node given a specific
-    depth limit.
+    depth limit. We recommend that you do not change the values of the method
+    and depth_limit parameters.
 
     :param method: A string specifying the desired tree derivation method.
-    Current methods are "random" or "full". There are some methods that use 
+    Current methods are "random" or "full". There are some methods that use
     the option "full", but we are always going to use the option "random".
     :param depth_limit: The overall depth limit of the desired tree from the
     current node.
@@ -95,6 +96,7 @@ def get_random_cand(grammar, maxdepth, old_genome=None):
     father = None
     # we use this inner helper function to do the work.
     # it "accumulates" the genome as it runs.
+
     def _random_ind(gram, genome, tree_genome, father, depth, s=None, name=None):
         """Recursively create a genome. gram is a grammar, genome a dict
         (initially empty), tree_genome is a list presenting the expansion
@@ -124,13 +126,15 @@ def get_random_cand(grammar, maxdepth, old_genome=None):
             # finish recursion is less than or equal to max depth
             # minus our current depth).
             productions = gram.rules[s]
-            available = legal_productions(
-                gram, "random", depth, s, productions['choices'])
+            available = legal_productions(gram, s, productions['choices'],
+                                          method="random", depth_limit=depth)
             prod = random.choice(available)  # choose production
             gi = productions['choices'].index(prod)  # find its index
+	
 
         genome[name] = gi
-        candidate_tree = [(maxdepth - depth), s, prod['choice'][0]['symbol'], father]
+        candidate_tree = [(maxdepth - depth), s,
+                          prod['choice'][0]['symbol'], father]
         father = s
         tree_genome.append(candidate_tree)
 
@@ -154,11 +158,14 @@ def get_random_cand(grammar, maxdepth, old_genome=None):
     genome = {}
     tree_genome = []
     s = _random_ind(grammar, genome, tree_genome, father, maxdepth, None, None)
-    return genome, s, tree_genome
+
+    # return genome, s, tree_genome
+    return tree_genome, s
 
 
 
-def get_random_candidates(grammar_file, number_of_candidates, seed):
+
+def get_random_candidates(grammar_file, number_of_candidates, seed, att):
     """
     It gets a random set of candidates from the grammar.
     """
@@ -166,8 +173,107 @@ def get_random_candidates(grammar_file, number_of_candidates, seed):
     gr = grammar_parser.Grammar(grammar_file)
     random.seed(a=seed, version=2)
 
-    for i in range(number_of_candidates):
+    for i in range(number_of_candidates):        
         cand = get_random_cand(gr, 100, None)
-        candidates.append(cand)
+        updated_cand = convert_candidate(cand, att)
+        candidates.append(updated_cand)
 
     return candidates
+
+
+
+def convert_candidate(cand, att):
+    """
+    It converts the random ranges
+    into the string and the tree 
+    to actual values.
+    """
+    float_str = 'RANDFLOAT'
+    int_str = 'RANDINT'
+    att_str = 'RANDATT'
+
+    tree_rep = cand[0]
+    str_rep = cand[1]
+    str_rep = str_rep.replace(', ', ',')
+    str_rep = str_rep.replace(' ,', ',')
+    str_rep = str_rep.replace(' , ', ',')
+
+    str_rep_array = str_rep.split(' ')
+    str_rep = ''
+    split_str_len = len(str_rep_array)
+
+    pos=0
+
+    for i in range(0, (split_str_len)):
+        if(str_rep_array[i].startswith(float_str)):
+            str_rep_array[i] = get_float_into_range(str_rep_array[i])
+            conv_output = deal_with_tree(tree_rep, str_rep_array[i], pos, float_str)
+            tree_rep = conv_output[0]
+            pos = conv_output[1]
+        elif(str_rep_array[i].startswith(int_str)):
+            str_rep_array[i] = get_int_into_range(str_rep_array[i], att)
+            conv_output = deal_with_tree(tree_rep, str_rep_array[i], pos, int_str)        
+            tree_rep = conv_output[0]
+            pos = conv_output[1]             
+        elif(str_rep_array[i].startswith(att_str)):
+            str_rep_array[i] = get_int_into_range(str_rep_array[i], att)
+            conv_output = deal_with_tree(tree_rep, str_rep_array[i], pos, att_str)        
+            tree_rep = conv_output[0]
+            pos = conv_output[1]   
+
+       
+        str_rep += str_rep_array[i] + ' '
+
+    return tree_rep, str_rep
+
+
+
+def deal_with_tree(tree, value, pos, start_str):
+    """
+    It deals with the produced tree, translating a 
+    range to a specific random value.
+    """
+    tree_len = len(tree)
+    current_pos = pos
+
+    for i in range(pos, tree_len):
+        if(tree[i][2].startswith(start_str)):
+            tree[i][2] = value
+            current_pos = i
+            break    
+
+    return tree, current_pos
+
+
+def get_float_into_range(prodct):
+    """
+    It gets a float value into a range.
+    """
+    range_len = len(prodct)
+    interval = prodct[10:(range_len-1)]
+    split_rg = interval.split(',')
+   
+    float_value = random.uniform(float(split_rg[0]), float(split_rg[1]))
+
+    return str(float_value)
+
+
+def get_int_into_range(prodct, att):
+    """
+    It gets a integer value into a range.
+    It can also get a integer value into a range
+    that depends on the number of attributes of 
+    the input dataset.
+    """
+    range_len = len(prodct)
+    interval = prodct[8:(range_len-1)]
+    interval = interval.strip()
+    split_rg = interval.split(',')
+    int_value = -1
+
+    if(prodct[0:7]=='RANDINT'):
+        int_value = random.randint(int(split_rg[0]), int(split_rg[1]))
+    else:
+        int_value = random.randint(int(split_rg[0]), (att-1))
+
+    return str(int_value)

@@ -2,6 +2,8 @@ import argparse
 import json
 import multiprocessing
 import time
+import sys
+import pandas as pd
 
 from hashlib import md5
 from xmlrpc.server import SimpleXMLRPCServer
@@ -32,18 +34,20 @@ def exec_timeout(func, args, timeout):
             'type': 'timeout',
             'msg': 'Time limit exceeded.'
         }}
-        return result, args[4]
+        return result, args[-1]
 
 
 def eval_dags(inputs, evaluated_list, timeout):
     while True:
         try:
-            ind_id, ind_dag, filename, metrics_list, splits = inputs.get(
-                block=False)
+            ind_id, ind_dag, filename, metrics_list, \
+                splits, test, train_size, fold = inputs.get(
+                    block=False)
 
             ind_scores, _ind_id = exec_timeout(
                 func=dag_evaluator.safe_dag_eval,
-                args=[ind_dag, filename, metrics_list, splits, ind_id],
+                args=[ind_dag, filename, metrics_list, splits,
+                      test, train_size, fold, ind_id],
                 timeout=timeout
             )
 
@@ -63,8 +67,6 @@ class DagEvalServer:
         self.n_cpus = n_cpus if n_cpus >= 0 else multiprocessing.cpu_count()
         self.timeout = timeout
 
-        self.gen_number = 0
-
         self.inputs = multiprocessing.Queue()
 
         self.processes = [multiprocessing.Process(target=eval_dags, args=(
@@ -76,7 +78,7 @@ class DagEvalServer:
         for p in self.processes:
             p.start()
 
-    def submit(self, candidate_string, datafile, metrics_list, splits):
+    def submit(self, candidate_string, dataset, metrics_list, splits, test, train_size, fold):
         candidate = json.loads(candidate_string)
 
         sub_time = time.time()
@@ -85,17 +87,26 @@ class DagEvalServer:
         m.update((candidate_string + str(sub_time)).encode())
         cand_id = m.hexdigest()
 
-        self.inputs.put((cand_id, candidate, datafile, metrics_list, splits))
+        self.inputs.put((cand_id, candidate, dataset, metrics_list,
+                         splits, test, train_size, fold))
+
+        sys.stderr.flush()
 
         return cand_id
 
     def get_evaluated(self, ind_id):
+        sys.stderr.flush()
+
         for ind in self.evaluated_list:
             if ind[0] == ind_id:
                 self.evaluated_list.remove(ind)
                 return json.dumps(ind)
 
         return json.dumps([None, None])
+
+    def get_num_feats_dataset(self, dataset):
+        df = pd.read_csv('data/' + dataset + '_1.csv', sep=';', nrows=1)
+        return df.shape[1] - 1
 
     def get_core_count(self):
         return json.dumps(self.n_cpus)

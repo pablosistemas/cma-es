@@ -1,0 +1,63 @@
+<Start> ::= <algorithm> | <preprocessing> <algorithm>
+
+<preprocessing> ::= <PCA> | <kBest>
+
+<PCA> ::= PCA <n_components> <whiten> <svd_solver> <tol> <iterated_power>
+<n_components> ::= RANDATT(1,ATT-1)
+<whiten> ::= True | False
+<svd_solver> ::= auto | full | arpack | randomized
+<tol> ::= RANDFLOAT(0.0,0.1)
+<iterated_power> ::= RANDINT(2,20)
+
+<kBest> ::= kBest <k>
+<k> ::= RANDATT(1,ATT-1)
+
+<algorithm> ::= <MLP> | <logR> | <DT> | <SVC> | gaussianNB | <LDA> | <QDA> | <SGD> | <Perceptron> | <PAC>
+
+
+<MLP> ::= MLP <learning_rate> <learning_rate_init> <momentum> <max_iter> <activation>
+<learning_rate> ::= constant | invscaling | adaptive
+<learning_rate_init> ::= RANDFLOAT(0.1,1.0)
+<momentum> ::= RANDFLOAT(0.0,1.0)
+<max_iter> ::= RANDINT(10,10000)
+<activation> ::= identity | logistic | tanh | relu
+
+<logR> ::= logR <penalty> <tol> <C> <fit_intercept> <max_iter> <warm_start>
+<penalty> ::= l1 | l2
+<C> ::= RANDFLOAT(0.03125,32768.0)
+<fit_intercept> ::= True | False
+
+
+<DT> ::= DT <criterion> <splitter> <max_depth> <max_features> <min_weight_fraction_leaf> <max_leaf_nodes>
+<criterion> ::= gini | entropy
+<splitter> ::= best | random
+<max_depth> ::= RANDINT(10,1000)
+<max_features> ::= sqrt | log2 | auto
+<min_weight_fraction_leaf> ::= RANDFLOAT(0.0,0.5)
+<max_leaf_nodes> ::= RANDINT(2,100)
+
+
+<SVC> ::= SVC <C> <kernel> <gamma> <coef0> <degree>  <tol>  <max_iter>
+<kernel> ::=  linear | poly | rbf | sigmoid
+<gamma> ::=  RANDFLOAT(0.000030517578125,8.0)
+<coef0> ::= RANDFLOAT(10.0,1000.0)
+<degree>  ::=  RANDINT(2,50)
+
+
+<LDA> ::= LDA <n_components> <tol>
+
+
+<QDA> ::= QDA <reg_param> <tol> 
+<reg_param> ::= RANDFLOAT(0.0,1.0)
+
+
+<SGD> ::= SGD <penalty> <tol> <max_iter> <loss> <warm_start>
+<loss> ::= hinge | log | modified_huber | squared_hinge | perceptron | squared_loss
+<warm_start> ::= True | False
+
+
+<Perceptron> ::= Perceptron <penalty> <tol> <max_iter> <warm_start>
+
+
+<PAC> ::= PAC <tol> <C> <max_iter> <warm_start>
+

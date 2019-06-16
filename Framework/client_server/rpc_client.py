@@ -10,11 +10,12 @@ class RPCClient(object):
     Arguments:
         server_url (str): URL, including port, of the server.
     """
+
     def __init__(self, server_url):
         self.server_url = server_url
         self.server_proxy = ServerProxy(server_url)
 
-    def evaluate_pipeline(self, candidate, dataset, metrics_list, n_splits):
+    def evaluate_pipeline(self, candidate, dataset, metrics_list, n_splits, test, train_size, fold):
         """Evaluates a pipeline according to a list of metrics.
 
         Arguments:
@@ -24,18 +25,23 @@ class RPCClient(object):
             n_splits (int | float): if int, number of folds for cross-validation; 
                                     if float, proportion of the dataset to
                                     include in the test split.
+            test (bool):            evaluate pipeline on the test set.
+            train_size (float):     proportion of the training fold to actually
+                                    use to train the model.
 
         Return:
             dictionary containing mean and std of evaluated metrics, total time
             and candidate id.
         """
-        _dataset = dataset + '.csv'
-
-        cand_id = self._submit(candidate, _dataset, metrics_list, n_splits)
+        cand_id = self._submit(
+            candidate, dataset, metrics_list, n_splits, test, train_size, fold)
 
         return self._get_evaluated(cand_id)
 
-    def _submit(self, candidate, dataset, metrics_list, n_splits):
+    def get_num_feats_dataset(self, dataset):
+        return self.server_proxy.get_num_feats_dataset(dataset)
+
+    def _submit(self, candidate, dataset, metrics_list, n_splits, test, train_size, fold):
         """Sends a request to the pipeline evaluator server.
 
         Arguments:
@@ -45,12 +51,15 @@ class RPCClient(object):
             n_splits (int | float): if int, number of folds for cross-validation; 
                                     if float, proportion of the dataset to
                                     include in the test split
+            test (bool):            evaluate pipeline on the test set.
+            train_size (float):     proportion of the training fold to actually
+                                    use to train the model.
 
         Return:
             candidate id.
         """
         return self.server_proxy.submit(
-            candidate, dataset, metrics_list, n_splits)
+            candidate, dataset, metrics_list, n_splits, test, train_size, fold)
 
     def _get_evaluated(self, candidate_id):
         """Retrieves the results of a pipeline evaluation from the server.

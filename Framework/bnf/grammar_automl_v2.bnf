@@ -1,0 +1,163 @@
+<Start> ::= <preprocessing> <algorithm> | <algorithm>
+
+
+
+<preprocessing> ::= <imputation> | <bounding> | <dimensionality> | <binarizer> | <imputation> <bounding> | <imputation> <binarizer> | <imputation> <dimensionality> | <bounding> <dimensionality> | <imputation> <bounding> <dimensionality> 
+
+<imputation> ::= SimpleImputer <strategy_imp>
+<strategy_imp> ::= mean | median | most_frequent
+
+<bounding> ::= <normalizer> | MinMaxScaler | MaxAbsScaler | <robust_scaler> | <standard_scaler>
+
+<robust_scaler> ::= RobustScaler <with_scaling> <with_centering>
+<standard_scaler> ::= StandardScaler <with_std> <with_mean>
+<with_scaling> ::= True | False
+<with_centering> ::= True | False
+<with_std> ::= True | False
+<with_mean> ::= True | False
+
+<normalizer> ::= Normalizer <norm>
+<norm> ::= l1 | l2 | max
+
+<binarizer> ::= Binarizer <threshold_bin>
+<threshold_bin> ::= RANDFLOAT(0.000001,1000)
+
+<dimensionality> ::= <feature_selection> | <dimensionality_reduction> 
+
+<feature_selection> ::= VarianceThreshold | <select_k_best>
+<select_k_best> ::= SelectKBest <features>
+<features> ::= RANDATT(1,ATT-1)
+
+<dimensionality_reduction> ::= <pca> | <incremental_pca> | <fast_ica> | <gaussian_projection> | <sparse_random_projection> | <feature_agglomeration> | <rbf_sampler> | <nystroem> | <truncatedsvd>
+
+<pca> ::= PCA <features> <whiten> <svd_solver> <tol_pca> <iterated_power>
+<incremental_pca> ::= IncrementalPCA <features> <whiten>
+<whiten> ::= True | False
+<svd_solver> ::= auto | full | arpack | randomized
+<tol_pca> ::= RANDFLOAT(0.0,0.1)
+<iterated_power> ::= RANDINT(2,20)
+
+<fast_ica> ::= FastICA <features> <algorithm_fastica> <funct> <max_iter_fastica> <tol> <whiten>
+<algorithm_fastica> ::= parallel | deflation
+<funct> ::= logcosh | exp | cube
+<max_iter_fastica> ::= RANDINT(10,1000)
+<tol> ::= RANDFLOAT(0.0000000001,0.1)
+
+<gaussian_projection> ::= GaussianRandomProjection <features> <epsilon>
+<sparse_random_projection> ::= SparseRandomProjection <features> <epsilon> <density> <dense_output>
+<epsilon> ::= RANDFLOAT(0.0,1.0)
+<density> ::= RANDFLOAT(0.00001,1.0)
+<dense_output> ::= True | False
+
+<feature_agglomeration> ::= FeatureAgglomeration <features> <affinity> <compute_full_tree>
+<affinity> ::= euclidean <linkage_type0> | <affinity_options> <linkage_type1>
+<affinity_options> ::= l1 | l2 | manhattan | cosine
+<linkage_type0> ::= ward | <linkage_type1>
+<linkage_type1> ::= complete | average
+<compute_full_tree> ::= True | False
+
+<rbf_sampler> ::= RBFSampler <features> <gamma_kernelApprox>
+<gamma_kernelApprox> ::= RANDFLOAT(0.000030518,8.0)
+
+<nystroem> ::= Nystroem <features> <kernel_dr> <gamma_kernelApprox> <degree_1> <coef0>
+<kernel_dr> ::= linear | poly | rbf | sigmoid
+<degree_1> ::= RANDINT(2,10)
+<coef0> ::= RANDFLOAT(0.0,1000.0)
+
+<truncatedsvd> ::= TruncatedSVD <features> <n_iter> <tol> <algorithm_tsvd>
+<n_iter> ::= RANDINT(5,1000)
+<algorithm_tsvd> ::= arpack | randomized
+
+
+
+<algorithm> ::= gaussianNB | <bernoulli_nb> | <multinomial_nb> | <complement_nb> | <svc> | <nu_svc> | <logistic_regression> | <perceptron> | <mlp> | <sgd> | <lda> | <qda> | <knn> | <radius_neighbours> | <centroid> | <ridge> | <ridge_cv> | <decision_tree> | <extra_tree> | <random_forest> | <extra_trees> | <ada_boost> | <gradient_boosting>
+
+<bernoulli_nb> ::= BernoulliNB <binarize> <alpha_nb> <fit_prior>
+<multinomial_nb> ::= MultinomialNB <alpha_nb> <fit_prior>
+<complement_nb> ::= ComplementNB <alpha_nb> <fit_prior> <norm_cnb>
+<binarize> ::= RANDFLOAT(0.0,1.0)
+<alpha_nb> ::= RANDFLOAT(0.0,9.0)
+<fit_prior> ::= True | False
+<norm_cnb> ::= True | False
+
+<svc> ::= SVC <C> <svc_basics> 
+<nu_svc> ::= NuSVC <nu> <svc_basics> 
+<svc_basics> ::= <kernel> <degree_kernel> <gamma> <coef0> <probability> <shrinking> <decision_function_shape> <tol> <max_iter> <class_weight>
+<C> ::= RANDFLOAT(0.03125,32768.0) 
+<nu> ::= RANDFLOAT(0.0000000001, 1.0)
+<kernel> ::= linear | poly | rbf | sigmoid
+<degree_kernel> ::= RANDINT(2,10)
+<gamma> ::= RANDFLOAT(0.000030518,8.0)
+<probability> ::= True | False
+<shrinking> ::= True | False
+<decision_function_shape> ::= ovo | ovr | None
+<max_iter> ::= RANDINT(10,10000)
+<class_weight> ::= balanced | None
+
+<logistic_regression> ::= LogisticRegression <penalty> <tol> <C> <fit_intercept> <max_iter> <warm_start>
+<penalty> ::= l1 | l2
+<fit_intercept> ::= True | False
+<warm_start> ::= True | False
+
+<perceptron> ::= Perceptron <penalty> <tol> <max_iter> <warm_start>
+
+<mlp> ::= MLP <learning_rate> <learning_rate_init> <momentum> <max_iter> <activation>
+<learning_rate> ::= constant | invscaling | adaptive
+<learning_rate_init> ::= RANDFLOAT(0.1,1.0)
+<momentum> ::= RANDFLOAT(0.0,1.0)
+<activation> ::= identity | logistic | tanh | relu
+
+<sgd> ::= SGD <penalty> <tol> <max_iter> <loss> <warm_start>
+<loss> ::= hinge | log | modified_huber | squared_hinge | perceptron | squared_loss
+
+<lda> ::= LDA <features> <tol>
+<qda> ::= QDA <reg_param> <tol> 
+<reg_param> ::= RANDFLOAT(0.0,1.0)
+
+<knn> ::= KNearestNeighbors <k> <weights> <k_algorithm> <leaf_size> <p> <d_metric> 
+<radius_neighbours> ::= RadiusNeighbors <radius> <weights> <k_algorithm> <leaf_size> <p> <d_metric>
+<centroid> ::= Centroid <shrinking_threshold> <d_metric>
+<k> ::= RANDINT(1,30)
+<weights> ::= uniform | distance
+<k_algorithm> ::= auto | brute | kd_tree | ball_tree
+<leaf_size> ::= RANDINT(5,100)
+<p> ::= RANDINT(1,15)
+<d_metric> ::= euclidean | manhattan | chebyshev | minkowski
+<radius> ::= RANDFLOAT(1.0,30.0)
+<shrinking_threshold> ::= RANDFLOAT(0.0, 30.0)
+
+<ridge> ::= Ridge <alpha> <max_iter> <copy_X> <solver_ridge> <tol> <ridge_basics>
+<ridge_cv> ::= RidgeCCV <cv> <ridge_basics>
+<alpha> ::= RANDFLOAT(0.0,1.0)
+<solver_ridge> ::= auto | svd | cholesky | lsqr | sparse_cg | sag | saga
+<copy_X> ::= True | False
+<ridge_basics> ::= <normalize> <fit_intercept>
+<normalize> ::= True | False
+<cv> ::= RANDINT(2,10)
+
+<decision_tree> ::= DT <criterion> <splitter> <max_depth> <max_features> <min_weight_fraction_leaf> <max_leaf_nodes>
+<criterion> ::= gini | entropy
+<splitter> ::= best | random
+<max_depth> ::= RANDINT(10,100)
+<max_features> ::= sqrt | log2 | auto
+<min_weight_fraction_leaf> ::= RANDFLOAT(0.0,0.5)
+<max_leaf_nodes> ::= RANDINT(2,100)
+
+<extra_tree> ::= ExtraTree <criterion> <splitter> <class_weight> <max_features> <max_depth> <min_weight_fraction_leaf> <max_leaf_nodes>
+
+<random_forest> ::= RandomForest <criterion> <bootstrap_and_oob> <class_weight_Trees> <n_estimators> <warm_start> <max_features> <max_depth> <min_weight_fraction_leaf> <max_leaf_nodes>
+<bootstrap_and_oob> ::= True <oob_score> | False False
+<oob_score> ::= True | False
+<class_weight_Trees> ::= balanced | balanced_subsample | None
+<n_estimators> ::= RANDINT(5,50)
+
+<extra_trees> ::= ExtraTrees <criterion> <bootstrap_and_oob> <class_weight_Trees> <n_estimators> <warm_start> <max_features> <max_depth> <min_weight_fraction_leaf> <max_leaf_nodes>
+
+<ada_boost> ::= AdaBoost <algorithm_ada> <n_estimators> <learning_rate_ada>
+<algorithm_ada> ::= SAMME.R | SAMME
+<learning_rate_ada> ::= RANDFLOAT(0.01,2.0)
+
+<gradient_boosting> ::= GradientBoosting <loss_gradient> <tol> <learning_rate_gradient> <presort> <n_estimators> <warm_start> <max_features> <max_depth> <min_weight_fraction_leaf> <max_leaf_nodes>
+<loss_gradient> ::= deviance | exponential
+<learning_rate_gradient> ::= RANDFLOAT(0.0000000001,1.0)
+<presort> ::= True | False | auto

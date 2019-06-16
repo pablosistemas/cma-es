@@ -28,11 +28,10 @@
 <fit_intercept> ::= True | False
 
 
-<DT> ::= DT <criterion> <splitter> <max_depth> <presort> <max_features> <min_weight_fraction_leaf>  <max_leaf_nodes>
+<DT> ::= DT <criterion> <splitter> <max_depth> <max_features> <min_weight_fraction_leaf>  <max_leaf_nodes>
 <criterion> ::= gini | entropy
 <splitter> ::= best | random
 <max_depth> ::= 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 100 | 150 | 200 | 250 | 300 | 350 | 400 | 450 | 500 | 600 | 700 | 800 | 900 | 1000
-<presort> ::= True | False
 <max_features> ::= sqrt | log2 | auto
 <min_weight_fraction_leaf> ::= 0.0 | 0.1 | 0.2 | 0.3 | 0.4 | 0.5
 <max_leaf_nodes> ::= 2 | 5 | 10 | 15 | 20 | 25 | 50 | 75 | 100

@@ -2,24 +2,20 @@ import inspect
 import joblib
 import json
 import os
-import pprint
-import sys
 import time
 import traceback
 
-import networkx as nx
 import numpy as np
 import pandas as pd
 
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.base import ClassifierMixin, RegressorMixin
-from sklearn import preprocessing, decomposition, feature_selection
+from sklearn import preprocessing
 
 import custom_models
+import dag_parser
 import utils
 from available_metrics import available_metrics
-from dag_parser import normalize_dag
-
 
 cache_dir = 'cache'
 
@@ -109,6 +105,15 @@ def train_dag(dag, train_data, sample_weight=None):
             if rest:
                 sample_weight = rest[0]
             ModelClass, model_params = utils.get_model_by_name(dag[m][1])
+
+            for p in model_params:
+                if model_params[p] == 'True':
+                    model_params[p] = True
+                elif model_params[p] == 'False':
+                    model_params[p] = False
+                elif model_params[p] == 'None':
+                    model_params[p] = None
+
             out_name = dag[m][2]
             if dag[m][1][0] == 'stacker':
                 sub_dags, initial_dag, input_data = \
@@ -264,8 +269,21 @@ def test_dag(dag, models, test_data, output='preds_only'):
 input_cache = {}
 
 
-def eval_dag_train_test(feats, targets, dag, metrics_dict, test_size):
-    scores_dict = {}
+def eval_metrics(metrics_dict, scores_dict, preds, targets):
+    for metric, config_dict in metrics_dict.items():
+        method = config_dict['method']
+        args = config_dict['args']
+        score = method(targets, preds, **args)
+
+        scores_dict[metric].append(score)
+
+    return scores_dict
+
+
+def eval_dag_train_test(train_data, dag, metrics_dict, test_size, train_size):
+    feats, targets = train_data
+
+    scores_dict = {metric: [] for metric in metrics_dict.keys()}
     result = {}
 
     if test_size <= 0 or test_size >= 1:
@@ -276,32 +294,34 @@ def eval_dag_train_test(feats, targets, dag, metrics_dict, test_size):
         return result
 
     try:
-        feats_train, feats_test, targets_train, targets_test = train_test_split(
-            feats, targets, test_size=test_size)
+        feats_train, feats_val, targets_train, targets_val = train_test_split(
+            feats, targets, test_size=test_size, random_state=1)
+
+        feats_train = feats_train[:int(train_size*len(feats_train))]
+        targets_train = targets_train[:int(train_size*len(targets_train))]
+
         train_data = (feats_train, targets_train)
-        test_data = (feats_test, targets_test)
+        val_data = (feats_val, targets_val)
 
         start_time = time.time()
         ms = train_dag(dag, train_data)
-        preds = test_dag(dag, ms, test_data)
+        preds = test_dag(dag, ms, val_data)
         end_time = time.time()
 
-        for metric, config_dict in metrics_dict.items():
-            method = config_dict['method']
-            args = config_dict['args']
-            scores_dict[metric] = method(test_data[1], preds, **args)
+        scores_dict = eval_metrics(
+            metrics_dict, scores_dict, preds, val_data[1])
 
         result = {
             m: {
-                'mean': scores_dict[m],
+                'mean': scores_dict[m][0],
                 'std': 0
             } for m in scores_dict.keys()
         }
 
         result['time'] = end_time - start_time
-
         return result
     except ValueError as e:
+        print('ERROR:', e)
         result = {'error': {
             'type': 'model',
             'msg': str(e)
@@ -309,7 +329,9 @@ def eval_dag_train_test(feats, targets, dag, metrics_dict, test_size):
         return result
 
 
-def eval_dag_kfold(feats, targets, dag, metrics_dict, n_splits):
+def eval_dag_kfold(train_data, dag, metrics_dict, n_splits, train_size):
+    feats, targets = train_data
+
     times = []
     scores_dict = {metric: [] for metric in metrics_dict.keys()}
 
@@ -320,26 +342,24 @@ def eval_dag_kfold(feats, targets, dag, metrics_dict, n_splits):
         }}
         return result
 
-    skf = StratifiedKFold(n_splits=n_splits)
+    skf = StratifiedKFold(n_splits=n_splits, random_state=1, shuffle=True)
 
     try:
-        for train_idx, test_idx in skf.split(feats, targets):
+        for train_idx, val_idx in skf.split(feats, targets):
+            train_idx = train_idx[:int(train_size*len(train_idx))]
+
             train_data = (feats.iloc[train_idx], targets.iloc[train_idx])
-            test_data = (feats.iloc[test_idx], targets.iloc[test_idx])
+            val_data = (feats.iloc[val_idx], targets.iloc[val_idx])
 
             start_time = time.time()
             ms = train_dag(dag, train_data)
-            preds = test_dag(dag, ms, test_data)
+            preds = test_dag(dag, ms, val_data)
             end_time = time.time()
 
-            for metric, config_dict in metrics_dict.items():
-                method = config_dict['method']
-                args = config_dict['args']
-                score = method(test_data[1], preds, **args)
-
-                scores_dict[metric].append(score)
-
             times.append(end_time - start_time)
+
+            scores_dict = eval_metrics(
+                metrics_dict, scores_dict, preds, val_data[1])
 
         result = {
             m: {
@@ -359,12 +379,74 @@ def eval_dag_kfold(feats, targets, dag, metrics_dict, n_splits):
         return result
 
 
-def eval_dag(dag, filename, metrics_list, splits):
-    file = 'data/' + filename
-    if not os.path.isfile(file):
+def eval_dag_1fold(train_data, val_data, dag, metrics_dict, train_size):
+    times = []
+    scores_dict = {metric: [] for metric in metrics_dict.keys()}
+
+    train_feats, train_targets = train_data
+    train_feats = train_feats[:int(train_size*len(train_feats))]
+    train_targets = train_targets[:int(train_size*len(train_targets))]
+
+    try:
+        start_time = time.time()
+        ms = train_dag(dag, (train_feats, train_targets))
+        preds = test_dag(dag, ms, val_data)
+        end_time = time.time()
+
+        times.append(end_time - start_time)
+
+        scores_dict = eval_metrics(
+            metrics_dict, scores_dict, preds, val_data[1])
+        
+        result = {
+            m: {
+                'mean': np.mean(scores_dict[m]),
+                'std': np.std(scores_dict[m])
+            } for m in scores_dict.keys()
+        }
+
+        result['time'] = np.sum(times)
+
+        return result
+
+    except (ValueError, ZeroDivisionError) as e:
+        result = {'error': {
+            'type': 'model',
+            'msg': str(e)
+        }}
+        return result
+
+
+def eval_test_set(dag, train_data, test_data, metrics_dict):
+    scores_dict = {metric: [] for metric in metrics_dict.keys()}
+
+    try:
+        ms = train_dag(dag, train_data)
+        preds = test_dag(dag, ms, test_data)
+
+        scores_dict = eval_metrics(
+            metrics_dict, scores_dict, preds, test_data[1])
+
+        result = {
+            m: scores_dict[m][0] for m in scores_dict.keys()
+        }
+        return result
+    except ValueError as e:
+        print('ERROR:', e)
+        result = {'error': {
+            'type': 'model',
+            'msg': str(e)
+        }}
+        return result
+
+
+def eval_dag(dag, dataset, metrics_list, splits, test, train_size, fold):
+    test_dataset = 'data/{}_{}.csv'.format(dataset, fold)
+
+    if not os.path.isfile(test_dataset):
         result = {'error': {
             'type': 'dataset',
-            'msg': 'Dataset {} does no exist.'.format(filename.split('.')[0])
+            'msg': 'Dataset {} does no exist.'.format(test_dataset)
         }}
         return result
 
@@ -375,39 +457,99 @@ def eval_dag(dag, filename, metrics_list, splits):
         } for metric in metrics_list
     }
 
-    dag = normalize_dag(dag)
+    dag = dag_parser.normalize_dag(dag)
 
-    if filename not in input_cache:
-        input_cache[filename] = pd.read_csv(file, sep=';')
+    if splits == 1:
+        train_dataset_idx = 'data/{}_train_{}_1fold'.format(dataset, fold)
+        val_dataset_idx = 'data/{}_val_{}_1fold'.format(dataset, fold)
+        val_idx = fold - 1
+        if val_idx == 0:
+            val_idx = 5
+        train_idx = [i for i in range(1, 6) if i not in [val_idx, fold]]
+        if train_dataset_idx not in input_cache:
+            train_df = pd.DataFrame()
+            for i in train_idx:
+                train_dataset_file = 'data/{}_{}.csv'.format(dataset, i)
+                train_df = pd.concat(
+                    [train_df, pd.read_csv(train_dataset_file, sep=';')])
+            input_cache[train_dataset_idx] = train_df
+        if val_dataset_idx not in input_cache:
+            val_df = pd.read_csv(
+                'data/{}_{}.csv'.format(dataset, val_idx), sep=';')
+            input_cache[val_dataset_idx] = val_df
+    else:
+        train_dataset_idx = 'data/{}_train_{}'.format(dataset, fold)
+        if train_dataset_idx not in input_cache:
+            train_df = pd.DataFrame()
+            for i in range(1, 6):
+                if i == fold:
+                    continue
+                train_dataset_file = 'data/{}_{}.csv'.format(dataset, i)
+                train_df = pd.concat(
+                    [train_df, pd.read_csv(train_dataset_file, sep=';')])
+            input_cache[train_dataset_idx] = train_df
 
-    data = input_cache[filename]
+    if test_dataset not in input_cache:
+        input_cache[test_dataset] = pd.read_csv(test_dataset, sep=';')
 
-    feats = data[data.columns[:-1]]
-    targets = data[data.columns[-1]]
+    train_data = input_cache[train_dataset_idx]
+    train_feats = train_data[train_data.columns[:-1]]
+    train_targets = train_data[train_data.columns[-1]]
+
+    test_data = input_cache[test_dataset]
+    test_feats = test_data[test_data.columns[:-1]]
+    test_targets = test_data[test_data.columns[-1]]
 
     le = preprocessing.LabelEncoder()
 
-    ix = targets.index
-    targets = pd.Series(le.fit_transform(targets), index=ix)
+    train_ix = train_targets.index
+    train_targets = pd.Series(le.fit_transform(train_targets), index=train_ix)
 
-    if type(splits) == int:
-        result = eval_dag_kfold(feats, targets, dag, metrics_dict, splits)
-    elif type(splits) == float:
-        result = eval_dag_train_test(feats, targets, dag, metrics_dict, splits)
+    test_ix = test_targets.index
+    test_targets = pd.Series(le.fit_transform(test_targets), index=test_ix)
+
+    train_data_proc = (train_feats, train_targets)
+    test_data_proc = (test_feats, test_targets)
+
+    if test:
+        result = eval_test_set(dag, train_data_proc,
+                               test_data_proc, metrics_dict)
     else:
-        result = {'error': {
-            'type': 'splits_param',
-            'msg': 'Parameter "splits" should '
-                   'be int or float, not {}.'.format(type(splits).__name__)
-        }}
+        if type(splits) == int:
+            if splits == 1:
+                val_data = input_cache[val_dataset_idx]
+                val_feats = val_data[val_data.columns[:-1]]
+                val_targets = val_data[val_data.columns[-1]]
+
+                val_ix = val_targets.index
+                val_targets = pd.Series(
+                    le.fit_transform(val_targets), index=val_ix)
+
+                val_data_proc = (val_feats, val_targets)
+
+                result = eval_dag_1fold(
+                    train_data_proc, val_data_proc, dag, metrics_dict, fold)
+            else:
+                result = eval_dag_kfold(
+                    train_data_proc, dag, metrics_dict, splits, train_size)
+        elif type(splits) == float:
+            result = eval_dag_train_test(
+                train_data_proc, dag, metrics_dict, splits, train_size)
+        else:
+            result = {'error': {
+                'type': 'splits_param',
+                'msg': 'Parameter "splits" should '
+                       'be int or float, not {}.'.format(type(splits).__name__)
+            }}
 
     return result
 
 
-def safe_dag_eval(dag, filename, metrics_list, splits, dag_id=None):
+def safe_dag_eval(dag, dataset, metrics_list, splits, test, train_size, fold, dag_id=None):
 
     try:
-        return eval_dag(dag, filename, metrics_list, splits), dag_id
+        return eval_dag(dag, dataset, metrics_list, splits,
+                        test, train_size, fold), dag_id
     except Exception as e:
         with open('error.' + str(dag_id), 'w') as err:
             err.write(str(e) + '\n')
